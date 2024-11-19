@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
@@ -180,15 +180,20 @@ class DrawingProgram
     {
         Console.Clear();
 
+        bool[] keyStates = new bool[4]; 
+
         while (isDrawing)
         {
-            RedrawCanvas();
+            RedrawCanvas(); 
+
+            
             var input = Console.ReadKey(true);
 
+           
             if (input.Key == ConsoleKey.Spacebar)
             {
                 Console.SetCursorPosition(cursorX, cursorY);
-                Console.ForegroundColor = activeColor;
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.Write(activeChar);
                 Console.ResetColor();
                 currentDrawing.Add(new Point { X = cursorX, Y = cursorY, Character = activeChar, Color = activeColor });
@@ -209,13 +214,31 @@ class DrawingProgram
             else if (input.Key >= ConsoleKey.D0 && input.Key <= ConsoleKey.D9)
                 activeColor = (ConsoleColor)(input.Key - ConsoleKey.D0);
             else
-                AdjustCursor(input);
+                AdjustCursor(input, keyStates);
+
+            
+            if (keyStates[0]) cursorX--; 
+            if (keyStates[1]) cursorX++; 
+            if (keyStates[2]) cursorY--; 
+            if (keyStates[3]) cursorY++; 
+
+            
+            if (keyStates[0] || keyStates[1] || keyStates[2] || keyStates[3])
+            {
+                
+                Console.SetCursorPosition(cursorX, cursorY);
+                Console.ForegroundColor = activeColor;
+                Console.Write(activeChar);
+                Console.ResetColor();
+
+               
+                currentDrawing.Add(new Point { X = cursorX, Y = cursorY, Character = activeChar, Color = activeColor });
+            }
         }
     }
 
     static void RedrawCanvas()
     {
-        Console.Clear();
         foreach (var point in currentDrawing)
         {
             Console.SetCursorPosition(point.X, point.Y);
@@ -225,14 +248,14 @@ class DrawingProgram
         Console.ResetColor();
     }
 
-    static void AdjustCursor(ConsoleKeyInfo input)
+    static void AdjustCursor(ConsoleKeyInfo input, bool[] keyStates)
     {
         switch (input.Key)
         {
-            case ConsoleKey.LeftArrow: if (cursorX > 0) cursorX--; break;
-            case ConsoleKey.RightArrow: if (cursorX < Console.WindowWidth - 1) cursorX++; break;
-            case ConsoleKey.UpArrow: if (cursorY > 0) cursorY--; break;
-            case ConsoleKey.DownArrow: if (cursorY < Console.WindowHeight - 1) cursorY++; break;
+            case ConsoleKey.LeftArrow: keyStates[0] = true; break;
+            case ConsoleKey.RightArrow: keyStates[1] = true; break;
+            case ConsoleKey.UpArrow: keyStates[2] = true; break;
+            case ConsoleKey.DownArrow: keyStates[3] = true; break;
         }
     }
 
@@ -298,7 +321,7 @@ public class Point
     public int Y { get; set; }
     public char Character { get; set; }
     public ConsoleColor Color { get; set; }
-    public int DrawingId { get; set; } // Foreign key
+    public int DrawingId { get; set; } 
 }
 
 public class DrawingDbContext : DbContext
